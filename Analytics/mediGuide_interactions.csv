@@ -1,0 +1,9 @@
+timestamp,session_id,topic,response_time,conversation_length,status
+2026-09-05 18:33:18,510a8266,Nutrition,12.45,1,success
+2026-09-05 18:34:44,510a8266,General,4.14,2,success
+2026-09-05 18:35:16,510a8266,General,9.37,3,success
+2026-09-06 18:31:41,0ba2790e,Symptoms,4.49,1,success
+2026-09-06 18:32:26,0ba2790e,Medication,32.55,2,success
+2026-09-06 18:33:45,0ba2790e,Sleep & Wellness,17.98,3,success
+2026-09-07 17:41:30,462ee34f,Nutrition,14.97,1,success
+2026-09-07 17:42:07,462ee34f,General,12.22,2,success
