@@ -1,0 +1,4 @@
+"use client";
+import { useState } from "react";
+const links = [["Home", "#top"], ["How it works", "#how-it-works"], ["Consult AI", "#consult"], ["Privacy", "#privacy"]];
+export default function Navbar() { const [open,setOpen]=useState(false); return <header className="nav"><div className="container nav-inner"><a className="brand" href="#top"><span className="brand-mark">+</span>Mediguide<span className="brand-ai">.ai</span></a><nav id="main-navigation" className={`nav-links ${open?"mobile-open":""}`} aria-label="Main navigation">{links.map(([label,href])=><a href={href} key={label} onClick={()=>setOpen(false)}>{label}</a>)}</nav><a className="button button-primary nav-cta" href="/consultation">Start a consultation →</a><button type="button" className="menu-button" aria-label={open ? "Close navigation" : "Open navigation"} aria-controls="main-navigation" aria-expanded={open} onClick={()=>setOpen(!open)}>{open?"×":"☰"}</button></div></header>; }

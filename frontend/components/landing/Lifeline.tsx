@@ -1,0 +1,1 @@
+export default function Lifeline({ decorative = true }: { decorative?: boolean }){return <svg className="lifeline" viewBox="0 0 500 70" aria-hidden={decorative}><path className="lifeline-base" d="M0 36H500"/><path className="lifeline-path" d="M0 36h65l13-1 10-11 15 30 16-47 17 29 11-1h73l12-9 14 18 16-34 13 26h67l14-1 12-12 14 20 16-7h70"/></svg>}

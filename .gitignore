@@ -14,3 +14,6 @@ coverage/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Removed from main repo — separate GitHub repo preserved
+frontend_backup/
