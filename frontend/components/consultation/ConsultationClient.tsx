@@ -41,7 +41,17 @@ export default function ConsultationClient() {
     setMessages((current) => [...current, { id: `user-${Date.now()}`, role: "user", content }]);
     try {
       const response = await sendMessage(conversationId, content);
-      setMessages((current) => [...current, { id: response.message_id, role: "assistant", content: response.content, topic: response.topic, safety: response.safety }]);
+      setMessages((current) => [
+        ...current,
+        {
+          id: response.message_id,
+          role: "assistant",
+          content: response.content,
+          topic: response.topic,
+          safety: response.safety,
+          assessment: response.assessment,
+        },
+      ]);
       return true;
     } catch (requestError) {
       setMessages((current) => current.slice(0, -1));
@@ -53,12 +63,25 @@ export default function ConsultationClient() {
     }
   }, [conversationId, sending]);
 
+  const focusChatInput = useCallback(() => {
+    const textarea = document.querySelector(".chat-input textarea") as HTMLTextAreaElement | null;
+    textarea?.focus();
+  }, []);
+
   return <main className="consultation-page"><section className="consultation-shell">
     <header className="consultation-header"><Link className="brand" href="/"><span className="brand-mark">+</span>Mediguide<span className="brand-ai">.ai</span></Link><span className="consultation-status"><i aria-hidden="true"/> Consultation active</span></header>
     <div className="consultation-title"><span>MEDIGUIDE AI</span><h1>How can I help you today?</h1><p>General health information, thoughtfully presented.</p></div>
     <section className="chat-panel" aria-label="MediGuide consultation">
       <div className="chat-messages" aria-live="polite" aria-atomic="false" aria-relevant="additions">
-        {messages.map((message) => <MessageBubble key={message.id} message={message}/>)}
+        {messages.map((message) => (
+          <MessageBubble
+            key={message.id}
+            message={message}
+            onSendAssessment={send}
+            disabled={sending}
+            onFocusChat={focusChatInput}
+          />
+        ))}
         {sending && <TypingIndicator/>}
         <div ref={newestMessageRef} aria-hidden="true"/>
       </div>

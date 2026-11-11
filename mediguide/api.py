@@ -6,10 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from .assessment import get_assessment_for_input
 from .config import settings
 from .db import Database
 from .llm import LLMService
-from .safety import assess_input, emergency_response
+from .relevance import OFF_TOPIC_RESPONSE, check_relevance
+from .safety import assess_input, emergency_response, sanitize_presentation
 from .topics import classify
 
 db = Database(settings.database)
@@ -64,6 +66,8 @@ def send_message(conversation_id: str, request: MessageRequest) -> dict:
     item = db.get_conversation(conversation_id)
     if not item:
         raise HTTPException(404, "Conversation not found.")
+
+    # --- Emergency check (highest priority — must run before everything else) ---
     assessment = assess_input(request.content)
     topic = classify(request.content)
     db.add_message(conversation_id, "user", request.content, topic=topic.name)
@@ -73,7 +77,17 @@ def send_message(conversation_id: str, request: MessageRequest) -> dict:
         message_id = db.add_message(conversation_id, "assistant", response, topic=topic.name)
         db.event("emergency_warning_triggered", conversation_id, topic.name, status="success")
         return {"message_id": message_id, "content": response, "topic": topic.name, "safety": assessment.category, "response_time": 0}
-    history = [{"role": row["role"], "content": row["content"]} for row in item["messages"][-10:]]
+
+    # --- Medical relevance filter (runs after emergency, before LLM) -----------
+    # Build conversation history for context-aware follow-up detection.
+    history = [{"role": row["role"], "content": row["content"]} for row in item["messages"][-24:]]
+    relevance = check_relevance(request.content, history)
+    if not relevance.is_medical:
+        message_id = db.add_message(conversation_id, "assistant", OFF_TOPIC_RESPONSE, topic=topic.name)
+        db.event("relevance_rejected", conversation_id, topic.name, status="rejected", metadata={"reason": relevance.reason})
+        return {"message_id": message_id, "content": OFF_TOPIC_RESPONSE, "topic": topic.name, "safety": "off_topic", "response_time": 0}
+
+    # --- Normal medical LLM path -------------------------------------------
     history.append({"role": "user", "content": request.content})
     started = time.perf_counter()
     try:
@@ -82,9 +96,20 @@ def send_message(conversation_id: str, request: MessageRequest) -> dict:
         db.event("response_error", conversation_id, topic.name, response_time=time.perf_counter() - started, status="error", metadata={"type": type(error).__name__})
         raise HTTPException(503, "MediGuide is temporarily unavailable. Please try again.") from error
     elapsed = time.perf_counter() - started
+    content = sanitize_presentation(content)
     message_id = db.add_message(conversation_id, "assistant", content, elapsed, topic.name)
     db.event("ai_response_generated", conversation_id, topic.name, elapsed, "success")
-    return {"message_id": message_id, "content": content, "topic": topic.name, "safety": "routine", "response_time": round(elapsed, 2)}
+    response_data = {
+        "message_id": message_id,
+        "content": content,
+        "topic": topic.name,
+        "safety": "routine",
+        "response_time": round(elapsed, 2),
+    }
+    assessment = get_assessment_for_input(request.content, history, topic.name)
+    if assessment:
+        response_data["assessment"] = assessment
+    return response_data
 
 
 @app.post("/api/messages/{message_id}/feedback")

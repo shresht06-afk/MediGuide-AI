@@ -9,7 +9,7 @@ load_dotenv()
 @dataclass(frozen=True)
 class Settings:
     api_key: str | None = os.getenv("OPENROUTER_API_KEY")
-    model: str = os.getenv("MEDIGUIDE_MODEL", "openrouter/free")
+    model: str = os.getenv("MEDIGUIDE_MODEL", "poolside/laguna-s-2.1:free")
     database: str = os.getenv("MEDIGUIDE_DATABASE", "mediguide.db")
     cors_origins: tuple[str, ...] = tuple(
         origin.strip()

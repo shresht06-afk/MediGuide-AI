@@ -19,7 +19,7 @@ class LLMService:
     def stream(self, messages: list[dict]) -> Iterator[tuple[str, float | None]]:
         started = time.perf_counter()
         first_token: float | None = None
-        stream = self._client().chat.completions.create(model=self.config.model, messages=[{"role": "system", "content": SYSTEM_PROMPT}, *messages[-12:]], stream=True)
+        stream = self._client().chat.completions.create(model=self.config.model, messages=[{"role": "system", "content": SYSTEM_PROMPT}, *messages[-24:]], stream=True)
         for chunk in stream:
             if not chunk.choices:
                 continue

@@ -2,8 +2,31 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 const networkErrorMessage = "We couldn't reach MediGuide right now. Please try again in a moment.";
 const requestErrorMessage = "MediGuide couldn't complete that request. Please try again in a moment.";
 
+export type AssessmentQuestion = {
+  id: string;
+  label: string;
+  type: "single_choice" | "multi_choice" | "slider";
+  options?: string[];
+  min?: number;
+  max?: number;
+  default?: number;
+};
+
+export type AssessmentForm = {
+  id: string;
+  title: string;
+  questions: AssessmentQuestion[];
+};
+
 export type Conversation = { id: string; title: string; created_at: string; updated_at: string; status: string };
-export type MessageResponse = { message_id: string; content: string; topic: string; safety: string; response_time: number };
+export type MessageResponse = {
+  message_id: string;
+  content: string;
+  topic: string;
+  safety: string;
+  response_time: number;
+  assessment?: AssessmentForm | null;
+};
 export type FeedbackResponse = { status: "recorded" };
 
 export class ApiError extends Error { constructor(message: string, public status?: number) { super(message); this.name = "ApiError"; } }
