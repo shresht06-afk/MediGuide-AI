@@ -623,3 +623,158 @@ def test_user_can_stop_assessment_or_request_summary(client_env) -> None:
         api_module.llm.stream = original
 
 
+def test_stomach_pain_delivers_structured_single_question_not_numbered_paragraph(client_env) -> None:
+    """A stomach-pain report generates a structured interactive question, not a paragraph with multiple numbered questions."""
+    client, api_module = client_env
+    conv_id = _create_conv(client)
+
+    def mock_stream(history):
+        yield "I understand you are experiencing stomach pain. Let's look into your symptoms step by step.", 0.1
+
+    original = api_module.llm.stream
+    try:
+        api_module.llm.stream = mock_stream
+        res = _send(client, conv_id, "I have stomach pain")
+    finally:
+        api_module.llm.stream = original
+
+    assert res["safety"] == "routine"
+    assert res.get("response_type") == "assessment_question"
+    assert "assessment_question" in res
+    q = res["assessment_question"]
+
+    # Validates Question 1 structure
+    assert q["id"] == "location"
+    assert q["step_number"] == 1
+    assert q["total_steps"] == 5
+    assert q["question"] == "Where are you experiencing the pain?"
+    assert "Upper abdomen" in q["options"]
+    assert "Lower abdomen" in q["options"]
+    assert "Left side" in q["options"]
+    assert "Right side" in q["options"]
+    assert "Around the belly button" in q["options"] or "Around belly button" in q["options"]
+    assert "Entire abdomen" in q["options"] or "Across the abdomen" in q["options"]
+    assert "Not sure" in q["options"]
+    assert "Other" in q["options"]
+
+    # Verifies the textual content does NOT dump a paragraph of numbered questions
+    assert not any(f"{i}." in res["content"] for i in range(1, 10))
+
+
+def test_one_question_at_a_time_progression_and_adaptive_summary(client_env) -> None:
+    """Validate step-by-step question progression and final transition to clinical assessment summary."""
+    client, api_module = client_env
+    conv_id = _create_conv(client)
+
+    def mock_stream(history):
+        yield "Noted. Let's continue evaluating your symptoms.", 0.1
+
+    original = api_module.llm.stream
+    try:
+        api_module.llm.stream = mock_stream
+
+        # Turn 1: Initial complaint -> Question 1 (Location)
+        t1 = _send(client, conv_id, "I have stomach pain")
+        assert t1["response_type"] == "assessment_question"
+        assert t1["assessment_question"]["id"] == "location"
+
+        # Turn 2: User provides Location -> Question 2 (Sensation)
+        t2 = _send(client, conv_id, "Location: Upper abdomen")
+        assert t2["response_type"] == "assessment_question"
+        assert t2["assessment_question"]["id"] == "sensation"
+        assert t2["assessment_question"]["question"] == "How would you describe the pain?"
+
+        # Turn 3: User provides Sensation -> Question 3 (Onset)
+        t3 = _send(client, conv_id, "Sensation: Cramping")
+        assert t3["response_type"] == "assessment_question"
+        assert t3["assessment_question"]["id"] == "onset"
+        assert t3["assessment_question"]["question"] == "When did the pain begin?"
+
+        # Turn 4: User provides Onset -> Question 4 (Severity)
+        t4 = _send(client, conv_id, "Onset: Yesterday")
+        assert t4["response_type"] == "assessment_question"
+        assert t4["assessment_question"]["id"] == "severity"
+        assert t4["assessment_question"]["type"] == "slider"
+
+        # Turn 5: User provides Severity -> Question 5 (Associated symptoms)
+        t5 = _send(client, conv_id, "Severity: 6/10 (Moderate)")
+        assert t5["response_type"] == "assessment_question"
+        assert t5["assessment_question"]["id"] == "associated"
+        assert t5["assessment_question"]["type"] == "multi_choice"
+
+        # Turn 6: User provides Associated symptoms -> All questions answered, transition to Assessment Summary
+        t6 = _send(client, conv_id, "Associated symptoms: Nausea, Bloating")
+        assert t6["response_type"] == "assessment_summary"
+        assert "assessment_summary" in t6
+        summary = t6["assessment_summary"]
+        assert "Stomach" in summary["category"]
+        assert len(summary["reported_symptoms"]) >= 1
+        assert len(summary["possible_explanations"]) >= 1
+        assert len(summary["warning_signs"]) >= 1
+        assert len(summary["safe_measures"]) >= 1
+        assert "licensed healthcare professional" in summary["professional_care_recommendation"]
+    finally:
+        api_module.llm.stream = original
+
+
+def test_headache_and_respiratory_assessments_trigger_structured_questions(client_env) -> None:
+    """Headache and respiratory symptoms trigger appropriate dynamic assessment questions."""
+    client, api_module = client_env
+
+    def mock_stream(history):
+        yield "I understand your symptoms. Let's look into this step by step.", 0.1
+
+    original = api_module.llm.stream
+    try:
+        api_module.llm.stream = mock_stream
+
+        # Test Headache
+        conv_headache = _create_conv(client)
+        res_h = _send(client, conv_headache, "I have a terrible throbbing headache")
+        assert res_h["response_type"] == "assessment_question"
+        assert res_h["assessment_question"]["category"] == "Headache"
+        assert res_h["assessment_question"]["id"] == "location"
+
+        # Test Respiratory
+        conv_resp = _create_conv(client)
+        res_r = _send(client, conv_resp, "I have had a bad cough for three days")
+        assert res_r["response_type"] == "assessment_question"
+        assert "Cough" in res_r["assessment_question"]["category"]
+        assert res_r["assessment_question"]["id"] == "cough_type"
+    finally:
+        api_module.llm.stream = original
+
+
+def test_free_text_additional_notes_preserved_in_summary(client_env) -> None:
+    """Free-text additional notes submitted by the user are preserved in the clinical summary."""
+    client, api_module = client_env
+    conv_id = _create_conv(client)
+
+    def mock_stream(history):
+        yield "Thank you for the detailed information.", 0.1
+
+    original = api_module.llm.stream
+    try:
+        api_module.llm.stream = mock_stream
+        _send(client, conv_id, "I have severe stomach pain")
+
+        submitted_with_notes = (
+            "Location: Upper abdomen\n"
+            "Severity: 8/10 (Severe)\n"
+            "Onset: Started today\n"
+            "Associated symptoms: Nausea\n"
+            "Additional details: Sharp pain worsening after eating dinner"
+        )
+        res = _send(client, conv_id, submitted_with_notes)
+        assert res["response_type"] == "assessment_summary"
+        summary = res["assessment_summary"]
+        reported_labels = [item["label"] for item in summary["reported_symptoms"]]
+        assert "Additional Notes" in reported_labels
+        notes_item = next(item for item in summary["reported_symptoms"] if item["label"] == "Additional Notes")
+        assert "Sharp pain worsening after eating dinner" in notes_item["value"]
+    finally:
+        api_module.llm.stream = original
+
+
+
+

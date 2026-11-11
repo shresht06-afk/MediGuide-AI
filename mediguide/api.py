@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from .assessment import get_assessment_for_input
+from .assessment import get_assessment_for_input, get_interactive_assessment_step
 from .config import settings
 from .db import Database
 from .llm import LLMService
@@ -76,7 +76,7 @@ def send_message(conversation_id: str, request: MessageRequest) -> dict:
         response = emergency_response()
         message_id = db.add_message(conversation_id, "assistant", response, topic=topic.name)
         db.event("emergency_warning_triggered", conversation_id, topic.name, status="success")
-        return {"message_id": message_id, "content": response, "topic": topic.name, "safety": assessment.category, "response_time": 0}
+        return {"message_id": message_id, "content": response, "topic": topic.name, "safety": assessment.category, "response_type": "emergency", "response_time": 0}
 
     # --- Medical relevance filter (runs after emergency, before LLM) -----------
     # Build conversation history for context-aware follow-up detection.
@@ -85,7 +85,7 @@ def send_message(conversation_id: str, request: MessageRequest) -> dict:
     if not relevance.is_medical:
         message_id = db.add_message(conversation_id, "assistant", OFF_TOPIC_RESPONSE, topic=topic.name)
         db.event("relevance_rejected", conversation_id, topic.name, status="rejected", metadata={"reason": relevance.reason})
-        return {"message_id": message_id, "content": OFF_TOPIC_RESPONSE, "topic": topic.name, "safety": "off_topic", "response_time": 0}
+        return {"message_id": message_id, "content": OFF_TOPIC_RESPONSE, "topic": topic.name, "safety": "off_topic", "response_type": "message", "response_time": 0}
 
     # --- Normal medical LLM path -------------------------------------------
     history.append({"role": "user", "content": request.content})
@@ -104,11 +104,29 @@ def send_message(conversation_id: str, request: MessageRequest) -> dict:
         "content": content,
         "topic": topic.name,
         "safety": "routine",
+        "response_type": "message",
         "response_time": round(elapsed, 2),
     }
-    assessment = get_assessment_for_input(request.content, history, topic.name)
-    if assessment:
-        response_data["assessment"] = assessment
+
+    step_info = get_interactive_assessment_step(request.content, history, topic.name)
+    if step_info:
+        r_type = step_info.get("response_type")
+        if r_type == "assessment_question":
+            response_data["response_type"] = "assessment_question"
+            response_data["assessment_question"] = step_info.get("active_question")
+            response_data["assessment"] = step_info.get("assessment")
+        elif r_type == "assessment_summary":
+            response_data["response_type"] = "assessment_summary"
+            response_data["assessment_summary"] = step_info.get("summary")
+            response_data["assessment"] = None
+    else:
+        assessment = get_assessment_for_input(request.content, history, topic.name)
+        if assessment:
+            response_data["response_type"] = "assessment_question"
+            response_data["assessment"] = assessment
+            if assessment.get("questions"):
+                response_data["assessment_question"] = assessment["questions"][0]
+
     return response_data
 
 

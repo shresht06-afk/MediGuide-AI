@@ -146,7 +146,8 @@ _POSITIVE_SIGNALS: list[tuple[str, int]] = [
     (
         r"\b(since yesterday|days ago|hours ago|weeks ago|more than a week|a few days"
         r"|just started|started today|duration|recurring|chronic|acute|constant|intermittent"
-        r"|comes and goes|worse at night|all day|1 to 10|out of 10|none of these)\b",
+        r"|comes and goes|worse at night|all day|1 to 10|out of 10|none of these"
+        r"|location|sensation|onset|severity|associated|cramp\w*|stabb\w*|throb\w*|puls\w*)\b",
         2,
     ),
 ]
@@ -240,7 +241,8 @@ _FOLLOWUP_PATTERN = re.compile(
     r"|the medication|the treatment|what else|anything else|tell me more"
     r"|more details|go on|and then|what happens|what should"
     r"|since|started|began|about|around|more than|less than|a few|couple of"
-    r"|for \d|past \d|just|only|mostly|mainly|none|not sure)\b",
+    r"|for \d|past \d|just|only|mostly|mainly|none|not sure"
+    r"|location|sensation|onset|severity|associated)\b",
     re.IGNORECASE,
 )
 

@@ -1849,3 +1849,751 @@ textarea:focus-visible {
   color: var(--muted);
   white-space: pre-line;
 }
+
+/* ==========================================================================
+   MEDIGUIDE AI 2.0 — INTERACTIVE CLINICAL ASSESSMENT SYSTEM
+   One-Question-At-A-Time Assessment Cards & Structured Clinical Summaries
+   ========================================================================== */
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Assessment Question Card Container --- */
+.assessment-question-card {
+  margin-top: 14px;
+  padding: 22px;
+  border: 1.5px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 4px 22px rgba(11, 30, 61, 0.06);
+  animation: card-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.aq-header {
+  margin-bottom: 16px;
+}
+
+.aq-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.aq-category-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #e9faf7;
+  color: var(--teal-deep);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aq-step-indicator {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.aq-step-indicator strong {
+  color: var(--navy);
+  font-weight: 850;
+}
+
+.aq-progress-track {
+  width: 100%;
+  height: 6px;
+  background: #e9eff6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.aq-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), #00d2b4);
+  border-radius: 999px;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.aq-body {
+  animation: card-in 0.22s ease-out;
+}
+
+.aq-question-heading {
+  margin-bottom: 16px;
+}
+
+.aq-question-title {
+  margin: 0 0 5px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+}
+
+.aq-question-explanation {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* --- Selectable Cards Grid --- */
+.aq-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.aq-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.aq-card:hover:not(:disabled) {
+  border-color: var(--teal);
+  background: #f4fbf9;
+  transform: translateY(-1px);
+}
+
+.aq-card.is-selected {
+  border-color: var(--teal);
+  background: #eefaf7;
+  color: var(--navy);
+  box-shadow: 0 3px 12px rgba(15, 191, 168, 0.16);
+}
+
+.aq-card:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.aq-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.aq-card-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #c2d0df;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.aq-card.is-selected .aq-card-indicator {
+  border-color: var(--teal);
+  background: var(--teal);
+}
+
+.aq-card-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.aq-card-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid #c2d0df;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 850;
+  color: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.aq-card.is-selected .aq-card-checkbox {
+  border-color: var(--teal);
+  background: var(--teal);
+}
+
+.aq-card-text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+/* --- Inline Other Input Field --- */
+.aq-other-field {
+  margin: 6px 0 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+}
+
+.aq-other-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.aq-other-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  background: #ffffff;
+  outline: none;
+}
+
+.aq-other-input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px #0fbfa822;
+}
+
+/* --- Severity Range Slider --- */
+.aq-slider-container {
+  padding: 16px 20px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: #fbfcfe;
+  margin-bottom: 14px;
+}
+
+.aq-slider-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.aq-slider-score {
+  font-size: 18px;
+  font-weight: 850;
+  color: var(--navy);
+}
+
+.aq-slider-max {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.aq-slider-descriptor {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 750;
+  background: #e9faf7;
+  color: var(--teal-deep);
+}
+
+.aq-range-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  accent-color: var(--teal);
+  cursor: pointer;
+}
+
+.aq-slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 650;
+  margin-top: 6px;
+}
+
+/* --- Free-Text Notes Collapsible --- */
+.aq-notes-area {
+  margin-top: 8px;
+}
+
+.aq-toggle-notes-btn {
+  background: none;
+  border: none;
+  color: var(--teal-deep);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 0;
+  transition: opacity 0.15s ease;
+}
+
+.aq-toggle-notes-btn:hover {
+  text-decoration: underline;
+}
+
+.aq-notes-box {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fafcfe;
+}
+
+.aq-notes-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.aq-notes-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  background: #ffffff;
+  resize: vertical;
+  outline: none;
+}
+
+.aq-notes-input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px #0fbfa822;
+}
+
+/* --- Assessment Navigation Footer --- */
+.aq-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.aq-nav-left {
+  display: flex;
+  align-items: center;
+}
+
+.aq-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.aq-btn-back {
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--navy);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.aq-btn-back:hover:not(:disabled) {
+  border-color: var(--teal);
+  color: var(--teal-deep);
+  background: #f0fbf9;
+}
+
+.aq-btn-text-mode {
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.aq-btn-text-mode:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.aq-btn-skip {
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.aq-btn-skip:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.aq-btn-continue {
+  padding: 9px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--teal);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  box-shadow: 0 2px 10px rgba(15, 191, 168, 0.28);
+}
+
+.aq-btn-continue:hover:not(:disabled) {
+  background: var(--teal-deep);
+  transform: translateY(-1px);
+}
+
+.aq-btn-continue:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* --- Submitted Confirmation --- */
+.aq-submitted {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid #b7eedf;
+  border-radius: 12px;
+  background: #f1fbf9;
+}
+
+.aq-submitted-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--teal-deep);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.aq-check-icon {
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--teal);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.aq-submitted-summary {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  white-space: pre-line;
+}
+
+/* ==========================================================================
+   CLINICAL ASSESSMENT SUMMARY CARD
+   ========================================================================== */
+
+.assessment-summary-card {
+  margin-top: 14px;
+  padding: 22px;
+  border: 1.5px solid #b7eedf;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 4px 24px rgba(15, 191, 168, 0.08);
+  animation: card-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.asc-header {
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e1f5f0;
+}
+
+.asc-badge-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.asc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: #e0f8f3;
+  color: var(--teal-deep);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.asc-badge-check {
+  font-weight: 900;
+}
+
+.asc-category {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.asc-title {
+  margin: 4px 0 4px;
+  font-size: 18px;
+  font-weight: 850;
+  color: var(--navy);
+  letter-spacing: -0.03em;
+}
+
+.asc-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.asc-section {
+  margin-top: 16px;
+}
+
+.asc-section-heading {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.asc-symptoms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.asc-symptom-item {
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: #f6fbf9;
+  border: 1px solid #d4f2ea;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.asc-symptom-label {
+  font-size: 10px;
+  font-weight: 750;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.asc-symptom-value {
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--navy);
+}
+
+.asc-uncertainty-note {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.asc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.asc-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.asc-bullet {
+  color: var(--teal);
+  font-weight: 900;
+}
+
+.asc-check-dot {
+  color: var(--teal);
+  font-weight: 800;
+  font-size: 12px;
+}
+
+/* Urgent Warning Signs Box */
+.asc-warning-box {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fff5f6;
+  border: 1.5px solid #ffd0d5;
+}
+
+.asc-warning-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.asc-warning-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e53e54;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.asc-warning-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #9c1d2e;
+}
+
+.asc-warning-lead {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #a5283b;
+  font-weight: 600;
+}
+
+.asc-warning-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.asc-warning-item {
+  color: #8c1b2c;
+  font-size: 12px;
+}
+
+.asc-warning-dot {
+  color: #e53e54;
+  font-size: 11px;
+}
+
+/* Referral & Disclaimer */
+.asc-footer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #e1f5f0;
+}
+
+.asc-referral {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f0f7ff;
+  border: 1px solid #cfe2fe;
+  margin-bottom: 12px;
+}
+
+.asc-referral-title {
+  display: block;
+  font-size: 12px;
+  color: #1e40af;
+  margin-bottom: 3px;
+}
+
+.asc-referral-text {
+  margin: 0;
+  font-size: 12px;
+  color: #1e3a8a;
+  line-height: 1.5;
+}
+
+.asc-disclaimer {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* Responsive Grid on Mobile */
+@media (max-width: 600px) {
+  .assessment-question-card,
+  .assessment-summary-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .aq-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .asc-symptoms-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assessment-question-card,
+  .assessment-summary-card,
+  .aq-progress-bar,
+  .aq-card {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

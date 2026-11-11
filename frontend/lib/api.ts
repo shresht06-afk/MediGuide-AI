@@ -5,11 +5,26 @@ const requestErrorMessage = "MediGuide couldn't complete that request. Please tr
 export type AssessmentQuestion = {
   id: string;
   label: string;
-  type: "single_choice" | "multi_choice" | "slider";
+  question?: string;
+  explanation?: string;
+  category?: string;
+  type: "single_choice" | "multi_choice" | "slider" | "text";
   options?: string[];
   min?: number;
   max?: number;
   default?: number;
+  step_number?: number;
+  total_steps?: number;
+  can_skip?: boolean;
+};
+
+export type AssessmentSummary = {
+  category: string;
+  reported_symptoms: { label: string; value: string }[];
+  possible_explanations: string[];
+  warning_signs: string[];
+  safe_measures: string[];
+  professional_care_recommendation: string;
 };
 
 export type AssessmentForm = {
@@ -25,6 +40,9 @@ export type MessageResponse = {
   topic: string;
   safety: string;
   response_time: number;
+  response_type?: "message" | "assessment_question" | "assessment_summary" | "emergency";
+  assessment_question?: AssessmentQuestion | null;
+  assessment_summary?: AssessmentSummary | null;
   assessment?: AssessmentForm | null;
 };
 export type FeedbackResponse = { status: "recorded" };

@@ -49,6 +49,9 @@ export default function ConsultationClient() {
           content: response.content,
           topic: response.topic,
           safety: response.safety,
+          response_type: response.response_type,
+          assessment_question: response.assessment_question,
+          assessment_summary: response.assessment_summary,
           assessment: response.assessment,
         },
       ]);
